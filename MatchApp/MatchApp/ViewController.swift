@@ -34,6 +34,13 @@ class ViewController: UIViewController {
 	}
 	
 	
+	override func viewDidAppear(_ animated: Bool) {
+		super.viewDidAppear(animated)
+		
+		SoundManager.playSound(effect: .shuffle)
+	}
+	
+	
 }
 
 // MARK: - Timer Methods
@@ -97,12 +104,19 @@ extension ViewController: UICollectionViewDelegate, UICollectionViewDataSource {
 	
 	func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
 		
+		// Check if there's any time remaining. Dont let the user interact if the time is zero
+		if milliseconds <= 0 {
+			return
+		}
 			// Get a reference to the cell that was tapped
 		let cell = collectionView.cellForItem(at: indexPath) as? CardCollectionViewCell
 		
 			// Check the status of the card and determine which way to flip it
 		if cell?.card?.isFlipped == false && cell!.card?.isMatched == false {
 			cell?.flipUp()
+			
+			// Play sound
+			SoundManager.playSound(effect: .flip)
 			
 				// Check if this is the first card taht was flpped or the second card
 			if firstFlippedCardIndex == nil {
@@ -134,7 +148,10 @@ extension ViewController: UICollectionViewDelegate, UICollectionViewDataSource {
 			// Compare the two cards
 		if cardOne.imageName == cardTwo.imageName {
 			
-				// Its a match. Set the status and remove them
+			// Play sound
+			SoundManager.playSound(effect: .match)
+			
+			// Its a match. Set the status and remove them
 			cardOne.isMatched = true
 			cardTwo.isMatched = true
 			
@@ -145,8 +162,11 @@ extension ViewController: UICollectionViewDelegate, UICollectionViewDataSource {
 			checkForGameEnd()
 		}
 		else {
-			// Its not a match. Flip them back over
 			
+			// Play sound
+			SoundManager.playSound(effect: .nomatch)
+			
+			// Its not a match. Flip them back over
 			cardOne.isFlipped = false
 			cardTwo.isFlipped = false
 			
@@ -175,7 +195,9 @@ extension ViewController: UICollectionViewDelegate, UICollectionViewDataSource {
 		}
 		
 		if hasWon {
-			
+			milliseconds = 0
+			timer?.invalidate()
+			timerLabel.text = "Time Remaining: 0:00"
 			// User has won, show an alert
 			showAlert(title: "Congratulations!", message: "You've won the game!")
 			
